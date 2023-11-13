@@ -10,7 +10,7 @@ using UnityEngine;
 namespace ManyRadiances
 {
     // Token: 0x02000003 RID: 3
-    internal class ultimatum : MonoBehaviour
+    public class ultimatum : MonoBehaviour
     {
         // Token: 0x06000004 RID: 4 RVA: 0x00002178 File Offset: 0x00000378
         private void Awake()
@@ -57,7 +57,7 @@ namespace ManyRadiances
             this._attackCommands.GetAction<RandomInt>("Orb Antic", 2).max = 8;
             this._attackCommands.GetAction<Wait>("Orb Summon", 2).time = 0.4f;
             this._attackCommands.GetAction<Wait>("Orb Pause", 0).time = 0.01f;
-            this._attackChoices.GetAction<Wait>("Orb Recover", 0).time = 1.25f;
+            this._attackChoices.GetAction<Wait>("Orb Recover", 0).time = 1.15f;
             this._attackCommands.GetAction<Wait>("CW Repeat", 0).time = 0f;
             this._attackCommands.GetAction<Wait>("CCW Repeat", 0).time = 0f;
             this._attackCommands.GetAction<FloatAdd>("CW Restart", 2).add = -10f;

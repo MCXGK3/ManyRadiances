@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-internal class supernova : MonoBehaviour
+public class supernova : MonoBehaviour
 {
     // Token: 0x06000007 RID: 7 RVA: 0x0000219C File Offset: 0x0000039C
     private void Awake()

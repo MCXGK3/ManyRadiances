@@ -1,9 +1,6 @@
-﻿using HutongGames.PlayMaker;
-using HutongGames.PlayMaker.Actions;
-using UnityEngine;
-using System.EnterpriseServices;
+﻿using Object = UnityEngine.Object;
 
-internal class any1 : MonoBehaviour
+public class any1 : MonoBehaviour
 {
     private int HP = 2000;
 
@@ -315,7 +312,7 @@ internal class any1 : MonoBehaviour
         }*/
         if (_attackChoices.FsmVariables.GetFsmInt("Arena").Value == 2 && !arena2Set)
         {
-            Modding.Logger.Log("[Ultimatum Radiance] Starting Phase 2");
+            Modding.Logger.Log("[AnyRadiance1.0] Starting Phase 2");
             arena2Set = true;
             _attackCommands.GetAction<SetIntValue>("Orb Antic", 1).intValue = 12;
             _attackCommands.GetAction<RandomInt>("Orb Antic", 2).min = 10;

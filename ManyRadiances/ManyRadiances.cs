@@ -10,7 +10,7 @@ namespace ManyRadiances
     public class ManyRadiances : Mod,IGlobalSettings<Settings>,IMenuMod
     {
         internal static ManyRadiances Instance;
-        static Settings s_=new();
+        public Settings s_=new();
         public bool ToggleButtonInsideMenu => true;
         public static FsmStateAction[] origQactions;
         public string[] ars = {"Any",
@@ -21,7 +21,9 @@ namespace ManyRadiances
             "Supernova",
             "Any",
             "Atomic",
-            "铁头"};
+            "铁头",
+            "遗忘之光",
+            "直面"};
         public string[] gg = {"God of meme.",
             "God of meme.",
             "",
@@ -30,7 +32,9 @@ namespace ManyRadiances
             "God of 10^46 joules",
             "God of meme.",
             "",
-            ""};
+            "",
+            "ForgottenLight",
+            "永燃之光"};
         public string[] grs = {"Ok.",
             "Ok.",
             "",
@@ -39,7 +43,9 @@ namespace ManyRadiances
             "Okay.",
             "k",
             "",
-            ""};
+            "",
+            "",
+            "不会......熄灭......"};
 
 
         public ManyRadiances() : base("ManyRadiances")
@@ -49,7 +55,7 @@ namespace ManyRadiances
 
         public override string GetVersion()
         {
-            return "0.0.0.1";
+            return "m.x.0.3";
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -85,8 +91,11 @@ namespace ManyRadiances
                 if (s_.Dumb) { origQactions = HeroController.instance.gameObject.LocateMyFSM("Spell Control").GetState("Q2 Land").Actions;self.gameObject.AddComponent<dumb>(); }
                 if (s_.anyPrime) { self.gameObject.AddComponent<anyprime>(); }
                 if (s_.Supernova) { self.gameObject.AddComponent<supernova>(); }
-                if (s_.Atomic) { self.gameObject.AddComponent<atomic>(); }
+                if (s_.Atomic!=0) { self.gameObject.AddComponent<atomic>(); }
                 if(s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
+                if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
+                if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
+                if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
             }
             orig(self);
         }
@@ -201,11 +210,14 @@ namespace ManyRadiances
                     Description = "原子辐光",
                     Values = new string[]
                  {
-                     Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                     //Language.Language.Get("MOH_ON", "MainMenu"),
+                    //Language.Language.Get("MOH_OFF", "MainMenu"),
+                    "关闭",
+                    "正常原子",
+                    "爬楼修复"
                  },
-                    Loader = () =>s_.Atomic? 0 : 1,
-                    Saver = i =>s_.Atomic = i == 0
+                    Loader = () =>s_.Atomic,
+                    Saver = i =>s_.Atomic = i 
                 });
             menu.Add(
                 new()
@@ -220,6 +232,46 @@ namespace ManyRadiances
                     Loader = () => s_.IronHead ? 0 : 1,
                     Saver = i => s_.IronHead = i == 0
                 });
+            menu.Add(
+                new()
+                {
+                    Name = "ForgottenLight",
+                    Description = "遗忘之光",
+                    Values = new string[]
+                 {
+                     Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                 },
+                    Loader = () => s_.forgottenlight ? 0 : 1,
+                    Saver = i => s_.forgottenlight = i == 0
+                });
+           /* menu.Add(
+                new()
+                {
+                    Name = "ImmortalLight",
+                    Description = "永恒之光",
+                    Values = new string[]
+                 {
+                     Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                 },
+                    Loader = () => s_.immortalLight ? 0 : 1,
+                    Saver = i => s_.immortalLight = i == 0
+                });
+            menu.Add(
+                new()
+                {
+                    Name = "test",
+                    Description = "测试用",
+                    Values = new string[]
+                 {
+                     Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                 },
+                    Loader = () => s_.test ? 0 : 1,
+                    Saver = i => s_.test = i == 0
+                });
+           */
 
 
             return menu;
@@ -233,8 +285,10 @@ namespace ManyRadiances
             if (s.Dumb) return 4;
             if (s.Supernova) return 5;
             if(s.anyPrime) return 6;
-            if (s.Atomic) return 7;
+            if (s.Atomic != 0) return 7;
             if (s.IronHead) return 8;
+            if(s.forgottenlight)return 9;
+            if(s.immortalLight) return 10;
             else return -1;
         }
     }

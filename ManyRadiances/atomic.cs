@@ -9,7 +9,7 @@ using UnityEngine;
 namespace ManyRadiances
 {
     // Token: 0x02000002 RID: 2
-    internal class atomic : MonoBehaviour
+    public class atomic : MonoBehaviour
     {
         // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
         private void Awake()
@@ -103,8 +103,11 @@ namespace ManyRadiances
             this._attackCommands.GetAction<Wait>("EB 9", 9).time = 0.6f;
 
             //修改楼梯激光代码
-            //this._attackCommands.GetAction<SendEventByName>("Aim", 8).delay = 0f;
-            //this._attackCommands.GetAction<SendEventByName>("Aim",9).delay = 0f;
+            if (ManyRadiances.Instance.s_.Atomic == 2)
+            {
+                this._attackCommands.GetAction<SendEventByName>("Aim", 8).delay = 0f;
+                this._attackCommands.GetAction<SendEventByName>("Aim", 9).delay = 0f;
+            }
 
 
 
@@ -291,7 +294,7 @@ namespace ManyRadiances
         public void DivePunishment()
         {
             Log("YOU WON'T CHEESE SPIKES IN THIS TOWN AGAIN");
-            HeroController.instance.TakeDamage(base.gameObject, CollisionSide.bottom, 1, 0);
+            HeroController.instance.TakeDamage(base.gameObject, CollisionSide.bottom, 8, 0);
             EventRegister.SendEvent("HERO DAMAGED");
         }
 

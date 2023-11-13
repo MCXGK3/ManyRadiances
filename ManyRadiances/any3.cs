@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ManyRadiances
 {
-    internal class any3
+    public class any3
     {
     }
 }

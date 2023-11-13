@@ -6,7 +6,7 @@ using HutongGames.PlayMaker.Actions;
 using Modding;
 using UnityEngine;
 
-internal class any2 : MonoBehaviour
+public class any2 : MonoBehaviour
 {
     private int HP = 2000;//增加血量
     private GameObject _spikeMaster;//spike  尖刺

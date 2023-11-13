@@ -2,7 +2,7 @@
 
 namespace ManyRadiances
 {
-    internal class ironhead:MonoBehaviour
+    public class ironhead:MonoBehaviour
     {
         private bool yes = false;
         private void Update()
