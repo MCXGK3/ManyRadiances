@@ -9,9 +9,10 @@ namespace ManyRadiances
 {
     public class ManyRadiances : Mod,IGlobalSettings<Settings>,IMenuMod
     {
-        internal static ManyRadiances Instance;
+        public static ManyRadiances Instance;
         public Settings s_=new();
         public bool ToggleButtonInsideMenu => true;
+        public bool Multirad=false;
         public static FsmStateAction[] origQactions;
         public string[] ars = {"Any",
             "Any",
@@ -82,20 +83,23 @@ namespace ManyRadiances
 
         private void mod_rad(On.PlayMakerFSM.orig_OnEnable orig, PlayMakerFSM self)
         {
-            if (self.gameObject.name == "Absolute Radiance" && self.FsmName == "Control")
+            if (!Multirad)
             {
-                if (s_.any1) { self.gameObject.AddComponent<any1>(); }
-                if (s_.any2) { self.gameObject.AddComponent<any2>(); }
-                if (s_.any3) { }
-                if (s_.Ultimatum) { self.gameObject.AddComponent<ultimatum>(); }
-                if (s_.Dumb) { origQactions = HeroController.instance.gameObject.LocateMyFSM("Spell Control").GetState("Q2 Land").Actions;self.gameObject.AddComponent<dumb>(); }
-                if (s_.anyPrime) { self.gameObject.AddComponent<anyprime>(); }
-                if (s_.Supernova) { self.gameObject.AddComponent<supernova>(); }
-                if (s_.Atomic!=0) { self.gameObject.AddComponent<atomic>(); }
-                if(s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
-                if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
-                if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
-                if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                if (self.gameObject.name == "Absolute Radiance" && self.FsmName == "Control")
+                {
+                    if (s_.any1) { self.gameObject.AddComponent<any1>(); }
+                    if (s_.any2) { self.gameObject.AddComponent<any2>(); }
+                    if (s_.any3) { }
+                    if (s_.Ultimatum) { self.gameObject.AddComponent<ultimatum>(); }
+                    if (s_.Dumb) { origQactions = HeroController.instance.gameObject.LocateMyFSM("Spell Control").GetState("Q2 Land").Actions; self.gameObject.AddComponent<dumb>(); }
+                    if (s_.anyPrime) { self.gameObject.AddComponent<anyprime>(); }
+                    if (s_.Supernova) { self.gameObject.AddComponent<supernova>(); }
+                    if (s_.Atomic != 0) { self.gameObject.AddComponent<atomic>(); }
+                    if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
+                    if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
+                    if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
+                    if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                }
             }
             orig(self);
         }

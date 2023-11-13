@@ -175,12 +175,21 @@ namespace ManyRadiances
             {
                 sword.LocateMyFSM("Control").GetAction<SetVelocityAsAngle>("Fire CW", 0).speed = 12f;
                 sword.LocateMyFSM("Control").GetAction<FloatAdd>("Fire CW", 2).add = 30f;
+                /*sword.LocateMyFSM("Control").RemoveAction("Recycle", 0);
+                sword.LocateMyFSM("Control").InsertCustomAction("Recycle", () => {
+                    if (sword != null)  Destroy(sword);
+                }, 0);*/
                 sword.LocateMyFSM("Control").SendEvent("FAN ATTACK CW");
+                
             }
             foreach (GameObject sword in swordsCCW)
             {
                 sword.LocateMyFSM("Control").GetAction<SetVelocityAsAngle>("Fire CCW", 0).speed = 12f;
                 sword.LocateMyFSM("Control").GetAction<FloatAdd>("Fire CCW", 2).add = -30f;
+                /*sword.LocateMyFSM("Control").RemoveAction("Recycle", 0);
+                sword.LocateMyFSM("Control").InsertCustomAction("Recycle", () => {
+                    if(sword!=null) Destroy(sword);
+                }, 0);*/
                 sword.LocateMyFSM("Control").SendEvent("FAN ATTACK CCW");
             }
             yield break;
@@ -199,6 +208,11 @@ namespace ManyRadiances
                     //FSM located in sharedassets407.assets
                     swordWall.LocateMyFSM("Control").GetAction<iTweenMoveBy>("Tween", 0).easeType = iTween.EaseType.easeInOutQuad;
                     swordWall.LocateMyFSM("Control").GetAction<iTweenMoveBy>("Tween", 0).speed = 14f;
+                    /*swordWall.LocateMyFSM("Control").RemoveAction("Recycle", 0);
+                    swordWall.LocateMyFSM("Control").InsertCustomAction("Recycle", () =>
+                    {
+                        if (swordWall != null) Destroy(swordWall);
+                    }, 0);*/
                 }, 3);
             }
         }
@@ -206,10 +220,6 @@ namespace ManyRadiances
         private void ModifyOrbs()
         {
             //Find orbs and edit FSM
-            if(absradAttackFSM.GetState("Spawn Fireball").Actions.Length > 7)
-            {
-                absradAttackFSM.RemoveAction("Spawn Fireball", 2);
-            }
             absradAttackFSM.InsertCustomAction("Spawn Fireball", () =>
             {
                 GameObject orb = absradAttackFSM.FsmVariables.FindFsmGameObject("Projectile").Value;
@@ -222,11 +232,12 @@ namespace ManyRadiances
                 int[] actionNum = new int[] { 12, 3, 1 };
                 for (int i = 0; i < 3; i++)
                 {
+
                     string fsmLocal = fsm[i];
                     string stateLocal = state[i];
                     int actionNumLocal = actionNum[i];
                     //orb.LocateMyFSM(fsmLocal).GetActions<Action>().Length = 0;
-                    if(orb.LocateMyFSM(fsmLocal).GetState(stateLocal).Actions.Length > actionNumLocal)
+                    if (orb.LocateMyFSM(fsmLocal).GetState(stateLocal).Actions.Length > actionNumLocal)
                     {
                         orb.LocateMyFSM(fsmLocal).RemoveAction(stateLocal, 0);
                     }
@@ -239,6 +250,16 @@ namespace ManyRadiances
                     }, 0);
                     //Modding.Logger.Log("Coroutine "+i+" OK");
                 }
+                orb.LocateMyFSM("Orb Control").RemoveAction("Recycle", 0);
+                orb.LocateMyFSM("Orb Control").InsertCustomAction("Recycle", () =>
+                {
+                    if (orb != null) Destroy(orb);
+                }, 0);
+                orb.LocateMyFSM("Final Control").RemoveAction("Recycle", 1);
+                orb.LocateMyFSM("Final Control").InsertCustomAction("Recycle", () =>
+                {
+                    if (orb != null) Destroy(orb);
+                }, 1);
             }, 2);
 
             //Get audio clips
