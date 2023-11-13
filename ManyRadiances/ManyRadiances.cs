@@ -56,7 +56,7 @@ namespace ManyRadiances
 
         public override string GetVersion()
         {
-            return "m.x.0.3";
+            return "m.x.0.4";
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
