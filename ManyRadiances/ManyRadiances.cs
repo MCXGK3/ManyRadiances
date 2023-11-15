@@ -56,7 +56,7 @@ namespace ManyRadiances
 
         public override string GetVersion()
         {
-            return "m.x.0.4";
+            return "m.x.0.5";
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -97,8 +97,8 @@ namespace ManyRadiances
                     if (s_.Atomic != 0) { self.gameObject.AddComponent<atomic>(); }
                     if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
                     if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
-                    if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
-                    if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                    //if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
+                    //if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
                 }
             }
             orig(self);

@@ -8,18 +8,18 @@ namespace ManyRadiances
 {
     public class Settings
     {
-        public bool any1=true;
-        public bool any2=true;
-        public bool any3=true;
-        public bool Ultimatum=true;
+        public bool any1=false;
+        public bool any2=false;
+        public bool any3=false;
+        public bool Ultimatum=false;
         public int Atomic=0;
-        public bool Dumb=true;
-        public bool Supernova=true;
-        public bool anyPrime=true;
-        public bool IronHead=true;
-        public bool forgottenlight=true;
-        public bool immortalLight = true;
-        public bool test=true;
+        public bool Dumb=false;
+        public bool Supernova=false;
+        public bool anyPrime=false;
+        public bool IronHead=false;
+        public bool forgottenlight=false;
+        public bool immortalLight = false;
+        public bool test=false;
         public string super = "我去";
         public string main = "原神";
         public string gg = "原初之神";
