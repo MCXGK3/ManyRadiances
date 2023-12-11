@@ -5,6 +5,8 @@ namespace Dumb
     internal class OrbThrow : MonoBehaviour
     {
         // Token: 0x06000033 RID: 51 RVA: 0x00004DF0 File Offset: 0x00002FF0
+           
+
         private void OnTriggerEnter2D(Collider2D col)
         {
             bool flag = col.name == "Floor Saver" || col.name == "Roof Collider" || col.name == "Terrain Saver";

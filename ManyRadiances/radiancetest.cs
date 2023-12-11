@@ -42,14 +42,14 @@ namespace ManyRadiances
 
         private void Start()
         {
-            att_cho.InsertCustomAction("A2 Choice", () =>
+           /* att_cho.InsertCustomAction("A2 Choice", () =>
             {
                 Log(att_cho.FsmVariables.GetFsmInt("Ct Nail R Sweep").Value);
             }, 0);
             att_cho.InsertCustomAction("A2 Choice", () =>
             {
                 Log(att_cho.FsmVariables.GetFsmInt("Ms Nail R Sweep").Value);
-            }, 0);
+            }, 0);*/
             // Material[] materials = orb.GetComponent<tk2dSprite>().Collection.materials;
             /* Texture[] texorb = orb.GetComponent<tk2dSprite>().Collection.textures;
              Material[] materials = orb.GetComponent<MeshRenderer>().materials;
@@ -61,7 +61,7 @@ namespace ManyRadiances
                  TextureUtils.WriteTextureToFile(mat.mainTexture, "C:\\Users\\shownyoung\\Desktop\\temp\\" + mat.mainTexture.name + ".png");
                  Log(mat.mainTexture.name);
              }*/
-            SendRandomEventV3 x;
+           /* SendRandomEventV3 x;
             SREV3 sREV3 = new SREV3();
             x = att_cho.GetAction<SendRandomEventV3>("A2 Choice", 3);
             sREV3.events=x.events;
@@ -72,7 +72,7 @@ namespace ManyRadiances
             sREV3.weights = x.weights;
             att_cho.RemoveAction("A2 Choice", 3);
             att_cho.InsertAction("A2 Choice", sREV3, 2);
-            Log("OK");
+            Log("OK");*/
         }
 
         private void Update()
@@ -84,7 +84,7 @@ namespace ManyRadiances
             comtime += Time.deltaTime;
             time += Time.deltaTime;
             string temp;
-            temp = att_cho.ActiveStateName;
+            /*temp = att_cho.ActiveStateName;
             if (temp != choact)
             {
                 bool flag=false;
@@ -100,8 +100,8 @@ namespace ManyRadiances
                 
                 if(!flag)   chotime = 0f;
                 
-            }
-            /*temp = att_com.ActiveStateName;
+            }*/
+            temp = att_com.ActiveStateName;
             if (temp != comact)
             {
                 comact = temp;
@@ -135,7 +135,7 @@ namespace ManyRadiances
                 Log("Teleport:" + teleact);
                 Log("Teleport:" + teletime);
                 teletime = 0f;
-            }*/
+            }
 
         }
 

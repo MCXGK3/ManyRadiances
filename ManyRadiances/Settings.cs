@@ -18,6 +18,7 @@ namespace ManyRadiances
         public bool anyPrime=false;
         public bool IronHead=false;
         public bool forgottenlight=false;
+        public bool inPat=false;
         public bool immortalLight = false;
         public bool test=false;
         public string super = "我去";

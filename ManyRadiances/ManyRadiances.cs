@@ -3,16 +3,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UObject = UnityEngine.Object;
+using HutongGames.PlayMaker;
+using IL.HutongGames.PlayMaker.Actions;
 
 namespace ManyRadiances
 {
-    public class ManyRadiances : Mod,IGlobalSettings<Settings>,IMenuMod
+    public class ManyRadiances : Mod,IGlobalSettings<Settings>,IMenuMod,ITogglableMod
     {
         public static ManyRadiances Instance;
         public Settings s_=new();
         public bool ToggleButtonInsideMenu => true;
         public bool Multirad=false;
+        public bool sceneJudge=false;
         public static FsmStateAction[] origQactions;
         public string[] ars = {"Any",
             "Any",
@@ -56,7 +60,7 @@ namespace ManyRadiances
 
         public override string GetVersion()
         {
-            return "m.x.0.5";
+            return "m.x.0.6";
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -69,36 +73,42 @@ namespace ManyRadiances
             ModHooks.LanguageGetHook += langet;
         }
 
+
         private string langet(string key, string sheetTitle, string orig)
         {
-            switch (key)
-            {
-                case "ABSOLUTE_RADIANCE_SUPER": if (Pri(s_)==-1) return orig; return ars[Pri(s_)];
-                case "ABSOLUTE_RADIANCE_MAIN": if (Pri(s_) == -1) return orig; if (Pri(s_) == 2) return s_.main; else return orig;
-                case  "GG_S_RADIANCE": if (Pri(s_) == -1) return orig; return gg[Pri(s_)];
-                case "GODSEEKER_RADIANCE_STATUE": if (Pri(s_) == -1) return orig; return grs[Pri(s_)];
-                default: return orig;
-            }
+            if (s_.inPat || !BossSequenceController.IsInSequence)
+                switch (key)
+                {
+                    case "ABSOLUTE_RADIANCE_SUPER": if (Pri(s_) == -1) return orig; return ars[Pri(s_)];
+                    case "ABSOLUTE_RADIANCE_MAIN": if (Pri(s_) == -1) return orig; if (Pri(s_) == 2) return s_.main; else return orig;
+                    case "GG_S_RADIANCE": if (Pri(s_) == -1) return orig; return gg[Pri(s_)];
+                    case "GODSEEKER_RADIANCE_STATUE": if (Pri(s_) == -1) return orig; return grs[Pri(s_)];
+                    default: return orig;
+                }
+            else return orig;
         }
 
         private void mod_rad(On.PlayMakerFSM.orig_OnEnable orig, PlayMakerFSM self)
         {
-            if (!Multirad)
+            if (s_.inPat || !BossSequenceController.IsInSequence)
             {
-                if (self.gameObject.name == "Absolute Radiance" && self.FsmName == "Control")
+                if (!Multirad)
                 {
-                    if (s_.any1) { self.gameObject.AddComponent<any1>(); }
-                    if (s_.any2) { self.gameObject.AddComponent<any2>(); }
-                    if (s_.any3) { }
-                    if (s_.Ultimatum) { self.gameObject.AddComponent<ultimatum>(); }
-                    if (s_.Dumb) { origQactions = HeroController.instance.gameObject.LocateMyFSM("Spell Control").GetState("Q2 Land").Actions; self.gameObject.AddComponent<dumb>(); }
-                    if (s_.anyPrime) { self.gameObject.AddComponent<anyprime>(); }
-                    if (s_.Supernova) { self.gameObject.AddComponent<supernova>(); }
-                    if (s_.Atomic != 0) { self.gameObject.AddComponent<atomic>(); }
-                    if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
-                    if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
-                    //if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
-                    //if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                    if (self.gameObject.name == "Absolute Radiance" && self.FsmName == "Control")
+                    {
+                        if (s_.any1) { self.gameObject.AddComponent<any1>(); }
+                        if (s_.any2) { self.gameObject.AddComponent<any2>(); }
+                        if (s_.any3) { }
+                        if (s_.Ultimatum) { self.gameObject.AddComponent<ultimatum>(); }
+                        if (s_.Dumb) { origQactions = HeroController.instance.gameObject.LocateMyFSM("Spell Control").GetState("Q2 Land").Actions; self.gameObject.AddComponent<dumb>(); }
+                        if (s_.anyPrime) { self.gameObject.AddComponent<anyprime>(); }
+                        if (s_.Supernova) { self.gameObject.AddComponent<supernova>(); }
+                        if (s_.Atomic != 0) { self.gameObject.AddComponent<atomic>(); }
+                        if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
+                        if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
+                        if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
+                        if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                    }
                 }
             }
             orig(self);
@@ -116,6 +126,20 @@ namespace ManyRadiances
         public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? toggleButtonEntry)
         {
             List<IMenuMod.MenuEntry> menu = new();
+            if(toggleButtonEntry != null) { menu.Add(toggleButtonEntry.Value); }
+            menu.Add(
+                new()
+                {
+                    Name = "五门中开启",
+                    Description = "开启后mod辐光将会在五门中出现",
+                    Values = new string[]
+                 {
+                     Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                 },
+                    Loader = () => s_. inPat? 0 : 1,
+                    Saver = i => s_.inPat = i == 0
+                });
             menu.Add(
                 new()
                 {
@@ -249,7 +273,7 @@ namespace ManyRadiances
                     Loader = () => s_.forgottenlight ? 0 : 1,
                     Saver = i => s_.forgottenlight = i == 0
                 });
-           /* menu.Add(
+            menu.Add(
                 new()
                 {
                     Name = "ImmortalLight",
@@ -275,7 +299,7 @@ namespace ManyRadiances
                     Loader = () => s_.test ? 0 : 1,
                     Saver = i => s_.test = i == 0
                 });
-           */
+           
 
 
             return menu;
@@ -294,6 +318,12 @@ namespace ManyRadiances
             if(s.forgottenlight)return 9;
             if(s.immortalLight) return 10;
             else return -1;
+        }
+
+        public void Unload()
+        {
+            On.PlayMakerFSM.OnEnable -= mod_rad;
+            ModHooks.LanguageGetHook -= langet;
         }
     }
 }
