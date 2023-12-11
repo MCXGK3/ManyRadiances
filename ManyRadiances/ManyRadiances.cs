@@ -106,8 +106,8 @@ namespace ManyRadiances
                         if (s_.Atomic != 0) { self.gameObject.AddComponent<atomic>(); }
                         if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
                         if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
-                        if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
-                        if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                        //if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
+                        //if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
                     }
                 }
             }
@@ -273,7 +273,7 @@ namespace ManyRadiances
                     Loader = () => s_.forgottenlight ? 0 : 1,
                     Saver = i => s_.forgottenlight = i == 0
                 });
-            menu.Add(
+            /*menu.Add(
                 new()
                 {
                     Name = "ImmortalLight",
@@ -298,7 +298,7 @@ namespace ManyRadiances
                  },
                     Loader = () => s_.test ? 0 : 1,
                     Saver = i => s_.test = i == 0
-                });
+                });*/
            
 
 
