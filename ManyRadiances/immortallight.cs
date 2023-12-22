@@ -498,7 +498,7 @@ namespace ManyRadiances
         {
             //剑加密
             _com.GetAction<Wait>("Nail Fan", 2).time = 0.2f;
-            _com.GetAction<SetIntValue>("Nail Fan", 4).intValue = 28;
+            _com.GetAction<SetIntValue>("Nail Fan", 4).intValue = 24;
             _com.GetAction<SetBoolValue>("Nail Fan", 5).boolValue = true;
             _com.GetAction<FloatAdd>("CW Spawn", 2).add = 15f;
             _com.GetAction<FloatAdd>("CCW Spawn", 2).add = 15f;
