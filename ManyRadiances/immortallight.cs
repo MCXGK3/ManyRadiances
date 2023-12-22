@@ -462,6 +462,8 @@ namespace ManyRadiances
                 Log("OK");
             }, 3);
             //_cho.GetAction<SendEventByName>("Nail Top Sweep", 3).delay = 1.25f;
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 0).delay = 0f;
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 1).delay = 0f;
             _cho.GetAction<Wait>("Nail Top Sweep", 4).time = 3.0f;
             _cho.RemoveAction("Nail Top Sweep", 2);
             _cho.RemoveAction("Nail Top Sweep", 2);
@@ -472,7 +474,7 @@ namespace ManyRadiances
                 Log("OK");
             }, 3);
             _cho.GetAction<SendEventByName>("Nail L Sweep", 0).delay = 0f;
-            _cho.GetAction<SendEventByName>("Nail L Sweep", 1).delay = 1.25f;
+            _cho.GetAction<SendEventByName>("Nail L Sweep", 1).delay = 0f;
             _cho.GetAction<SendEventByName>("Nail L Sweep", 2).delay = 3.0f;
             _cho.GetAction<Wait>("Nail L Sweep", 3).time = 3.0f;
             _cho.RemoveAction("Nail L Sweep", 2);
@@ -484,7 +486,7 @@ namespace ManyRadiances
                 Log("OK");
             }, 3);
             _cho.GetAction<SendEventByName>("Nail R Sweep", 0).delay = 0f;
-            _cho.GetAction<SendEventByName>("Nail R Sweep", 1).delay = 1.25f;
+            _cho.GetAction<SendEventByName>("Nail R Sweep", 1).delay = 0f;
             _cho.GetAction<SendEventByName>("Nail R Sweep", 2).delay = 3.0f;
             _cho.GetAction<Wait>("Nail R Sweep", 3).time = 3.0f;
             _cho.RemoveAction("Nail L Sweep", 2);
