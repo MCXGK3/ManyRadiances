@@ -48,7 +48,7 @@ namespace ManyRadiances
         int Scream=2000;
 
 
-        float gap = 0.5f;
+        float gap = 0.7f;
         float gapnow = 0f;
         float height = 80;
         float bbgap = 0.2f;
@@ -291,7 +291,7 @@ namespace ManyRadiances
             ModifyEyeBeams();
             ModifyNailFan();
             ModifyNailWall();
-            //ModifySpike();
+            ModifySpike();
             ModifyAcend();
             ModifyFinal();
             _con.InsertCustomAction("Tendrils1", () => { ModifyPlatsPhase(); }, 0);
@@ -302,11 +302,16 @@ namespace ManyRadiances
             BeamFireClip = _com.GetAction<AudioPlayerOneShotSingle>("Aim", 3).audioClip.Value as AudioClip;
             Log(BeamFireClip);
 
-            for(int i = 0; i < 72; i++)
+            for(int i = 0; i < 73; i++)
             {
                 useorbs.Add(Instantiate(_com.GetAction<SpawnObjectFromGlobalPool>("Spawn Fireball", 1).gameObject.Value));
                 useorbs[i].LocateMyFSM("Orb Control").RemoveTransition("Stop Particles", "FINISHED");
                 useorbs[i].LocateMyFSM("Orb Control").GetAction<AudioPlaySimple>("Init", 0).volume = 0.1f;
+            }
+            useorbs[0].LocateMyFSM("Orb Control").GetAction<SetDamageHeroAmount>("Init",5).damageDealt = 0;
+            foreach (var mo in useorbs[0].GetComponents<Component>())
+            {
+                Log(mo);
             }
             foreach(var orb in useorbs)
             {
@@ -555,18 +560,15 @@ namespace ManyRadiances
             spikes.Sort((a, b) => { return a.transform.GetPositionX() < b.transform.GetPositionX()?1:-1; });
             foreach(GameObject spike in spikes)
             {
-                foreach(var mo in spike.GetComponents<Component>())
-                {
-                    Log(mo);
-                }
+
                 spike.LocateMyFSM("Control").GetAction<Wait>("Floor Antic",2).time = 1f;
-                spike.LocateMyFSM("Hero Saver").RemoveAction("Send", 0);
+                /*spike.LocateMyFSM("Hero Saver").RemoveAction("Send", 0);
                 spike.LocateMyFSM("Hero Saver").InsertCustomAction("Send", () =>
                 {
                     if (spikes.IndexOf(spike) > 0) { spikes[spikes.IndexOf(spike)-1].LocateMyFSM("Control").SendEvent("DOWN"); }
                     if (spikes.IndexOf(spike) < spikes.Count-1) { spikes[spikes.IndexOf(spike) + 1].LocateMyFSM("Control").SendEvent("DOWN"); }
                     spike.LocateMyFSM("Control").SendEvent("DOWN");
-                }, 0);
+                }, 0);*/
             }
             if (_spikecon != null)
             {
@@ -725,7 +727,7 @@ namespace ManyRadiances
                 }
                 a2beams.Clear();
             }, 3);
-            _com.RemoveAction("Orb Pos", 6);
+            _com.RemoveAction("Orb Pos", 7);
             _com.GetAction<Wait>("Orb Summon", 2).time = 0.5f;
             _com.InsertCustomAction("Final Event", () =>
             {
@@ -780,6 +782,9 @@ namespace ManyRadiances
 
         private IEnumerator OrbCircle(GameObject gameObject, bool v)
         {
+            useorbs[0].transform.position = base.gameObject.transform.position+new Vector3(0,1.5f,0);
+            useorbs[0].LocateMyFSM("Orb Control").SetState("Init");
+            useorbs[0].SetActive(true);
             yield return new WaitForSeconds(0.5f);
             int num = 12; 
             float degree = 360f / num;
@@ -788,7 +793,7 @@ namespace ManyRadiances
                 for(int i = 0; i < 9; i++)
                 {
                     Vector3 pos;
-                    for(int j = 0+turn*num; j<num + turn * num; j++)
+                    for(int j = 1+turn*num; j<num + turn * num; j++)
                     {
                         pos = gameObject.transform.position + new Vector3(Mathf.Cos(j * degree) * distance, Mathf.Sin(j * degree) * distance, 0);
 
@@ -801,13 +806,13 @@ namespace ManyRadiances
                     }
                 distance += 1f * (v ? 2f : -1);
                 yield return new WaitForSeconds(0.3f);
-                    for (int j = 0+turn * num; j < num +turn * num; j++)
+                    for (int j = 1+turn * num; j < num +turn * num; j++)
                     {
                         useorbs[j].LocateMyFSM("Orb Control").SendEvent("DESTROY");
                     }
-                turn = 1 - turn;
+                turn = turn+1>3?0:turn+1;
                 }
-            
+            useorbs[0].LocateMyFSM("Orb Control").SendEvent("DESTROY");
             yield break;
         }
 
@@ -846,8 +851,8 @@ namespace ManyRadiances
             _com.InsertCustomAction("Comb Top 2", () =>
             {
                 GameObject nails=_com.FsmVariables.FindFsmGameObject("Attack Obj").Value;
-                if (height < 150f) { height += 3f; }
-                else { gap = 1f; }
+                if (height < 150f) { height += 4.5f; }
+                else { gap = 1.2f; }
                 nails.LocateMyFSM("Control").GetAction<SetPosition>("Top 2", 0).y = height;
                 nails.LocateMyFSM("Control").GetAction<SetFloatValue>("Top 2", 2).floatValue = 8f;
                 nails.LocateMyFSM("Control").GetAction<iTweenMoveBy>("Tween", 0).vector = new Vector3(0, 150, 0);
