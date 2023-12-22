@@ -427,7 +427,11 @@ namespace ManyRadiances
             EB1.GetAction<SendEventByName>(9).delay = 0.8f;
             EB1.InsertCustomAction(() =>
             {
-
+                float roration= _com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value.transform.rotation.eulerAngles.z;
+                roration += UnityEngine.Random.Range(10f, 30f);
+                _com.FsmVariables.FindFsmGameObject("Eye Beam Burst2").Value.transform.SetRotation2D(roration);
+                roration += UnityEngine.Random.Range(10f, 30f);
+                _com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value.transform.SetRotation2D(roration);
                 SendEventToBB(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst2").Value, "ANTIC");
                 SendEventToBB(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value, "ANTIC");
                 StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value, 40f, 0.5f, false));
@@ -439,6 +443,7 @@ namespace ManyRadiances
             {
                 StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst2").Value, 40f, 0.5f, false));
             }, 8);
+            EB2.RemoveAction(6);
 
             EB3.GetAction<SendEventByName>(8).delay = 0.5f;
             EB3.GetAction<SendEventByName>(9).delay = 0.8f;
@@ -446,6 +451,7 @@ namespace ManyRadiances
             {
                 StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value,40f,0.5f, false));
             }, 8);
+            EB3.RemoveAction(6);
         }
 
         private void ModifyNailWall()
