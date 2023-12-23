@@ -704,7 +704,7 @@ namespace ManyRadiances
                     beam.transform.position = gameObject.transform.position;
                     beam.transform.SetPositionY(gameObject.transform.position.y + 1.5f);
                     beam.transform.SetRotation2D(180f);
-                    StartCoroutine(beamFire(beam, 0f, 1.5f, 0f));
+                    StartCoroutine(beamFire(beam, 0f, 2f, 0f));
                     StartCoroutine(BBrorate(beam, 90f, 2f, true));
                     Log(beam);
                     Log("=6");
