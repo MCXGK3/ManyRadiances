@@ -562,13 +562,35 @@ namespace ManyRadiances
             {
 
                 spike.LocateMyFSM("Control").GetAction<Wait>("Floor Antic",2).time = 1f;
-                /*spike.LocateMyFSM("Hero Saver").RemoveAction("Send", 0);
+                spike.LocateMyFSM("Hero Saver").RemoveAction("Send", 0);
                 spike.LocateMyFSM("Hero Saver").InsertCustomAction("Send", () =>
                 {
-                    if (spikes.IndexOf(spike) > 0) { spikes[spikes.IndexOf(spike)-1].LocateMyFSM("Control").SendEvent("DOWN"); }
-                    if (spikes.IndexOf(spike) < spikes.Count-1) { spikes[spikes.IndexOf(spike) + 1].LocateMyFSM("Control").SendEvent("DOWN"); }
+                    int j = spikes.IndexOf(spike) + 1;
+                    int i= spikes.IndexOf(spike)-1;
+                    while (j < spikes.Count)
+                    {
+                        string activename = spikes[j].LocateMyFSM("Control").ActiveStateName;
+                        if (activename == "Down" || activename == "Downed") break;
+                        else
+                        {
+                            spikes[j].LocateMyFSM("Control").SendEvent("DOWN");
+                        }
+                        j++;
+                    }
+                    while (i >= 0)
+                    {
+                        string activename = spikes[i].LocateMyFSM("Control").ActiveStateName;
+                        if (activename == "Down" || activename == "Downed") break;
+                        else
+                        {
+                            spikes[i].LocateMyFSM("Control").SendEvent("DOWN");
+                        }
+                        i--;
+                    }
+                    /*if (spikes.IndexOf(spike) > 0) { spikes[spikes.IndexOf(spike)-1].LocateMyFSM("Control").SendEvent("DOWN"); }
+                    if (spikes.IndexOf(spike) < spikes.Count-1) { spikes[spikes.IndexOf(spike) + 1].LocateMyFSM("Control").SendEvent("DOWN"); }*/
                     spike.LocateMyFSM("Control").SendEvent("DOWN");
-                }, 0);*/
+                }, 0);
             }
             if (_spikecon != null)
             {
@@ -599,7 +621,7 @@ namespace ManyRadiances
                         }
                         else
                         {
-                            spike.LocateMyFSM("Control").SendEvent("DOWN");
+                            //spike.LocateMyFSM("Control").SendEvent("DOWN");
                         }
                     }
                 }, 2);
@@ -718,6 +740,7 @@ namespace ManyRadiances
 
 
             //光球激光速度减慢
+            _cho.GetAction<SendRandomEventV3>("A2 Choice", 1).weights[2] = 0.75f;
             _com.GetAction<Wait>("Orb Pause", 0).time = 0.5f;
             _com.InsertCustomAction("Orb Antic", () =>
             {
@@ -832,14 +855,15 @@ namespace ManyRadiances
 
         private IEnumerator Shown()
         {
+            yield return new WaitForSeconds(2f);
             ShowConvo("耀日东升西落");
-            yield return new WaitForSeconds(4f);
+            yield return new WaitForSeconds(4.5f);
             ShowConvo("明月阴晴圆缺");
-            yield return new WaitForSeconds(4f);
+            yield return new WaitForSeconds(4.5f);
             ShowConvo("落木枯朽而下");
-            yield return new WaitForSeconds(4f);
+            yield return new WaitForSeconds(4.5f);
             ShowConvo("时间一去无返");
-            yield return new WaitForSeconds(4f);
+            yield return new WaitForSeconds(4.5f);
             ShowConvo("万物皆有起伏");
             yield break;
 
@@ -902,7 +926,7 @@ namespace ManyRadiances
                 clock = secondHand.GetComponent<AudioSource>();
                 if (clock != null)
                     clock.Stop();
-                clock = Clock.GetComponent<AudioSource>();
+                clock = secondHand.GetAddComponent<AudioSource>();
                 secondHand.transform.SetRotation2D(0);
                 secondHand.transform.SetPosition2D(0f, 0f);
                 
@@ -953,7 +977,7 @@ namespace ManyRadiances
             _con.InsertCustomAction("Scream", () =>
             {
                 StopCoroutine("Shown");
-                ShowConvo("而吾即是永恒");
+                ShowConvo("唯永恒不灭！");
                 for (int i = 0; i < num; i++)
                 {
                     useorbs[i].LocateMyFSM("Orb Control").GetAction<ChaseObjectV2>("Chase Hero", 3).target = gameObject;
@@ -1108,6 +1132,9 @@ namespace ManyRadiances
             {
                 playMakerFSM.RemoveAction("Set Convo", 4);
             }
+            foreach(var orb in orbList) { if(orb!=null) { Destroy(orb); } }
+            foreach(var beam in beams) { if(beam!=null) { Destroy(beam); } }
+            foreach(var orb in useorbs) { if(orb!=null) { Destroy(orb);} }
 
         }
 
