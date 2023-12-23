@@ -647,7 +647,7 @@ namespace ManyRadiances
                         }
                         else
                         {
-                            spike.LocateMyFSM("Control").SendEvent("DOWN");
+                           // spike.LocateMyFSM("Control").SendEvent("DOWN");
                         }
                     }
                 }, 2);
