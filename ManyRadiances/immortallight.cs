@@ -1,17 +1,19 @@
-﻿using Satchel.Futils;
-using System.Diagnostics.Contracts;
+﻿using Modding;
+using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
+using System;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
-using static UnityEngine.GraphicsBuffer;
+using HutongGames.PlayMaker.Actions;
 using WavLib;
-using Steamworks;
+using Satchel;
+using Satchel.Futils;
+using HutongGames.PlayMaker;
 
 namespace ManyRadiances
 {
-    public class immortallight : MonoBehaviour
+    internal class immortallight : MonoBehaviour
     {
         PlayMakerFSM _con;
         PlayMakerFSM _cho;
@@ -19,21 +21,18 @@ namespace ManyRadiances
         PlayMakerFSM _tele;
         PlayMakerFSM _phcon;
         HealthManager _hp;
-        GameObject[] beams = new GameObject[50];
         GameObject oribeam;
-        GameObject beamburst;
         GameObject fakebb;
         GameObject glow;
-        GameObject bb=null;
+        GameObject bb = null;
         List<GameObject> orbList = new List<GameObject>();
         List<GameObject> useorbs = new List<GameObject>();
-        List<GameObject> respwan= new List<GameObject>();
-        List <GameObject> a2beams= new List<GameObject>();
+        List<GameObject> a2beams = new List<GameObject>();
         GameObject knight;
         bool foundbeam = false;
-        bool final=false;
-        bool finalSet1=false;
-        bool finalSet2=false;
+        bool final = false;
+        bool finalSet1 = false;
+        bool finalSet2 = false;
         private AudioClip BeamAnticClip;
         private AudioClip BeamFireClip;
         private AudioClip tip;
@@ -45,7 +44,7 @@ namespace ManyRadiances
         int a1Rage = 3000;
         int stun = 2500;
         int p5Acend = 1000;
-        int Scream=2000;
+        int Scream = 2000;
 
 
         float gap = 0.7f;
@@ -57,15 +56,17 @@ namespace ManyRadiances
         float finalgapnow = 0f;
 
 
-        float hour = (90f-System.DateTime.Now.Hour*30f)%360f;
+        float hour = (90f - System.DateTime.Now.Hour * 30f) % 360f;
         float minute = (90f - System.DateTime.Now.Minute * 6f) % 360f;
-        float second = (90f-System.DateTime.Now.Second* 6f)%360f;
-        GameObject timeClock=new GameObject();
+        float second = (90f - System.DateTime.Now.Second * 6f) % 360f;
+        GameObject timeClock = new GameObject();
         GameObject Clock;
         GameObject hourHand;
         GameObject minuteHand;
         GameObject secondHand;
         AudioSource clock;
+        float zoomscale;
+        bool zoom = false;
 
         private void Awake()
         {
@@ -76,8 +77,8 @@ namespace ManyRadiances
             _hp = gameObject.GetComponent<HealthManager>();
             _phcon = gameObject.LocateMyFSM("Phase Control");
 
-            tip=LoadAudioClip("ManyRadiances.Resources.clock.wav");
-
+            tip = LoadAudioClip("ManyRadiances.Resources.clock.wav");
+            ModifyRadiance();
         }
 
 
@@ -87,46 +88,31 @@ namespace ManyRadiances
             aus = beam.GetAddComponent<AudioSource>();
             beam.SetActive(true);
             PlayMakerFSM beamFSM = beam.LocateMyFSM("Control");
-            aus.PlayOneShot(BeamAnticClip);
+            aus.PlayOneShot(BeamAnticClip, 0.5f * GameManager.instance.gameSettings.soundVolume / 10f);
             beamFSM.SendEvent("ANTIC");
             yield return new WaitForSeconds(antic);
-            aus.PlayOneShot(BeamFireClip);
+            aus.PlayOneShot(BeamFireClip, 0.5f * GameManager.instance.gameSettings.soundVolume / 10f);
             beamFSM.SendEvent("FIRE");
             yield return new WaitForSeconds(fire);
             beamFSM.SendEvent("END");
             yield return new WaitForSeconds(end);
+            yield return new WaitForSeconds(1f);
             Destroy(beam);
-            yield break;
-        }
-        private IEnumerator beamFire(GameObject beam, float antic, float fire, float end,bool destroy)
-        {
-            AudioSource aus;
-            aus = beam.GetAddComponent<AudioSource>();
-            beam.SetActive(true);
-            PlayMakerFSM beamFSM = beam.LocateMyFSM("Control");
-            aus.PlayOneShot(BeamAnticClip);
-            beamFSM.SendEvent("ANTIC");
-            yield return new WaitForSeconds(antic);
-            aus.PlayOneShot(BeamFireClip);
-            beamFSM.SendEvent("FIRE");
-            yield return new WaitForSeconds(fire);
-            beamFSM.SendEvent("END");
-            yield return new WaitForSeconds(end);
-            if (destroy) { Destroy(beam); }
             yield break;
         }
 
         private IEnumerator beginbeams(GameObject orb)
         {
             GameObject beam = Instantiate(oribeam);
-            GameObject beam2= Instantiate(oribeam);
+            GameObject beam2 = Instantiate(oribeam);
             beam.transform.SetRotation2D(0);
             beam2.transform.SetRotation2D(0);
             beam.transform.position = orb.transform.position;
             beam2.transform.position = orb.transform.position;
             //beam.transform.position += new Vector3(0, -20f, 0);
             float f = UnityEngine.Random.Range(0f, 180f);
-            if (_cho.GetVariable<FsmInt>("Arena").Value != 1) {
+            if (_cho.GetVariable<FsmInt>("Arena").Value != 1)
+            {
                 float num = knight.transform.position.y - orb.transform.position.y;
                 float num2 = knight.transform.position.x - orb.transform.position.x;
                 float num3;
@@ -202,26 +188,10 @@ namespace ManyRadiances
         private IEnumerator SendEventToNail(GameObject nail, float delay, string s)
         {
             yield return new WaitForSeconds(delay);
-            //Log(nail.LocateMyFSM("Control").ActiveStateName);
             nail.LocateMyFSM("Control").SendEvent(s);
             yield break;
         }
-        private void SendEventToBB(GameObject go, string eve) {
-            if (go != null)
-            {
-                List<GameObject> list = new List<GameObject>();
-                go.FindAllChildren(list);
-                foreach (GameObject go2 in list)
-                {
-                    PlayMakerFSM bbcon;
-                    bbcon = go2.LocateMyFSM("Control");
-                    
-                    bbcon.SendEvent(eve);
-                }
-                list.Clear();
-            }
-        }
-        private IEnumerator SendEventToBB(GameObject go, string eve,float time)
+        private void SendEventToBB(GameObject go, string eve)
         {
             if (go != null)
             {
@@ -233,27 +203,16 @@ namespace ManyRadiances
                     bbcon = go2.LocateMyFSM("Control");
 
                     bbcon.SendEvent(eve);
-                    yield return new WaitForSeconds(time); 
                 }
                 list.Clear();
             }
-            yield break;
         }
 
-        private IEnumerator Arrive()
-        {
-            fakebb.transform.position = gameObject.transform.position;
-            fakebb.transform.SetRotation2D(UnityEngine.Random.Range(0f, 360f));
-            SendEventToBB(fakebb, "ANTIC");
-            yield return new WaitForSeconds(1f);
-            SendEventToBB(fakebb, "FIRE");
-            yield break;
-        }
 
-        private IEnumerator BBrorate(GameObject eb,float v,float time,bool random)
+        private IEnumerator BBrorate(GameObject eb, float v, float time, bool random)
         {
             float timer = 0f;
-            if (UnityEngine.Random.Range(0, 2) == 0||random)
+            if (UnityEngine.Random.Range(0, 2) == 0 || random)
             {
                 while (timer <= time)
                 {
@@ -274,46 +233,43 @@ namespace ManyRadiances
             yield break;
         }
 
-        private IEnumerator NailsTransform(GameObject nails)
-        { 
-            yield return new WaitForSeconds(0.5f);
-        }
 
         private void Start()
         {
             knight = GameObject.Find("Knight");
-            beamburst = _com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value;
-            ModifyRadiance();
-            ModifyOrbs();
-            ModifyRage();
-            ModifyBeamSweeper();
-            ModifyRadiance();
-            ModifyEyeBeams();
-            ModifyNailFan();
-            ModifyNailWall();
-            ModifySpike();
-            ModifyAcend();
-            ModifyFinal();
-            _con.InsertCustomAction("Tendrils1", () => { ModifyPlatsPhase(); }, 0);
 
             //获得激光的两个声音
             BeamAnticClip = _com.GetAction<AudioPlayerOneShotSingle>("Aim", 1).audioClip.Value as AudioClip;
-            Log(BeamAnticClip);
             BeamFireClip = _com.GetAction<AudioPlayerOneShotSingle>("Aim", 3).audioClip.Value as AudioClip;
-            Log(BeamFireClip);
 
-            for(int i = 0; i < 73; i++)
+
+
+            ModifyOrbs();
+            ModifyRage();
+            ModifyBeamSweeper();
+            ModifyEyeBeams();
+            ModifyNailFan();
+            ModifyNailWall(true);
+            ModifySpike();
+            ModifyAcend();
+            ModifyFinal();
+            ModifyScene();
+
+            _con.InsertCustomAction("Tendrils1", () => { ModifyPlatsPhase(); }, 0);
+
+
+
+            for (int i = 0; i < 73; i++)
             {
                 useorbs.Add(Instantiate(_com.GetAction<SpawnObjectFromGlobalPool>("Spawn Fireball", 1).gameObject.Value));
                 useorbs[i].LocateMyFSM("Orb Control").RemoveTransition("Stop Particles", "FINISHED");
                 useorbs[i].LocateMyFSM("Orb Control").GetAction<AudioPlaySimple>("Init", 0).volume = 0.1f;
             }
-            useorbs[0].LocateMyFSM("Orb Control").GetAction<SetDamageHeroAmount>("Init",5).damageDealt = 0;
-            foreach (var mo in useorbs[0].GetComponents<Component>())
-            {
-                Log(mo);
-            }
-            foreach(var orb in useorbs)
+            useorbs[0].LocateMyFSM("Orb Control").GetAction<SetDamageHeroAmount>("Init", 5).damageDealt = 0;
+            useorbs[0].LocateMyFSM("Orb Control").GetAction<SetDamageHeroAmount>("Dissipate", 3).damageDealt = 0;
+
+
+            foreach (var orb in useorbs)
             {
                 orb.LocateMyFSM("Orb Control").InsertCustomAction("Stop Particles", () =>
                 {
@@ -324,8 +280,24 @@ namespace ManyRadiances
 
         }
 
+        private void ModifyScene()
+        {
+            Scene scene = SceneUtils.getCurrentScene();
+            string[] strings = { "GG_scenery_0004_17 (80)", "GG_scenery_0004_17 (86)", "GG_scenery_0004_17 (87)", "GG_scenery_0004_17 (89)", "GG_scenery_0004_17 (90)" };
+            foreach (var go in scene.GetAllGameObjects())
+            {
+                if (go.name.IsAny(strings))
+                {
+                    go.SetActive(false);
+                }
+            }
+        }
+
+
         private void ModifyBeamSweeper()
         {
+            _cho.GetAction<SendRandomEventV3>("A1 Choice", 1).weights[6] = 0.5f;
+            _cho.GetAction<SendRandomEventV3>("A1 Choice", 1).weights[7] = 0.5f;
             _cho.RemoveAction("Beam Sweep L", 1);
             _cho.InsertCustomAction("Beam Sweep L", () =>
             {
@@ -351,23 +323,14 @@ namespace ManyRadiances
 
         private void ModifyRage()
         {
-            /*_com.InsertCustomAction("EB 4",() =>
-            {
 
-                SendEventToBB(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst2").Value, "ANTIC");
-                SendEventToBB(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value, "ANTIC");
-               // StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value));
-            }, 6);*/
             _con.ChangeTransition("Rage1 Start", "FINISHED", "Rage Eyes");
             _com.GetAction<SendEventByName>("EB 4", 3).delay = 0.7f;
             _com.GetAction<SendEventByName>("EB 4", 4).delay = 1.0f;
-            //_com.GetAction<Wait>("EB 4", 5).time = 0.5f;
             _com.GetAction<SendEventByName>("EB 5", 4).delay = 0.7f;
             _com.GetAction<SendEventByName>("EB 5", 5).delay = 1.0f;
-            //_com.GetAction<Wait>("EB 5", 6).time = 0.5f;
             _com.GetAction<SendEventByName>("EB 6", 4).delay = 0.7f;
             _com.GetAction<SendEventByName>("EB 6", 5).delay = 1.0f;
-            //_com.GetAction<Wait>("EB 6", 6).time = 0.5f;
             _con.InsertCustomAction("Climb Plats1", () =>
             {
                 _com.ChangeTransition("EB 4", "FINISHED", "EB Glow End 2");
@@ -383,7 +346,7 @@ namespace ManyRadiances
         private void ModifyOrbs()
         {
             //改变位置
-            _com.GetAction<DistanceBetweenPoints>("Orb Pos", 5).point2 =_com.GetVariable<FsmVector3>("Hero Pos");
+            _com.GetAction<DistanceBetweenPoints>("Orb Pos", 5).point2 = _com.GetVariable<FsmVector3>("Hero Pos");
             //加速
             _com.GetAction<Wait>("Orb Pause", 0).time = 0.10f;
             _com.GetAction<Wait>("Orb Antic", 0).time = 0.05f;
@@ -432,7 +395,7 @@ namespace ManyRadiances
             EB1.GetAction<SendEventByName>(9).delay = 0.8f;
             EB1.InsertCustomAction(() =>
             {
-                float roration= _com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value.transform.rotation.eulerAngles.z;
+                float roration = _com.FsmVariables.FindFsmGameObject("Eye Beam Burst1").Value.transform.rotation.eulerAngles.z;
                 roration += UnityEngine.Random.Range(10f, 30f);
                 _com.FsmVariables.FindFsmGameObject("Eye Beam Burst2").Value.transform.SetRotation2D(roration);
                 roration += UnityEngine.Random.Range(10f, 30f);
@@ -454,9 +417,32 @@ namespace ManyRadiances
             EB3.GetAction<SendEventByName>(9).delay = 0.8f;
             EB3.InsertCustomAction(() =>
             {
-                StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value,40f,0.5f, false));
+                StartCoroutine(BBrorate(_com.FsmVariables.FindFsmGameObject("Eye Beam Burst3").Value, 40f, 0.5f, false));
             }, 8);
             EB3.RemoveAction(6);
+        }
+
+        private void ModifyNailWall(bool rel)
+        {
+            _com.GetAction<SetFsmInt>("Comb L 2", 1).setValue = 1;
+            _com.GetAction<SetFsmInt>("Comb R 2", 1).setValue = 2;
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 0).sendEvent = "COMB L2";
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 1).sendEvent = "COMB R2";
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 2).sendEvent = "COMB L2";
+            _cho.GetAction<SendEventByName>("Nail Top Sweep", 3).sendEvent = "COMB R2";
+
+            _cho.GetAction<SendEventByName>("Nail L Sweep", 1).sendEvent = "COMB R2";
+            _cho.GetAction<SendEventByName>("Nail L Sweep", 1).delay = 1.2f;
+            _cho.GetAction<SendEventByName>("Nail L Sweep", 2).sendEvent = "COMB TOP";
+
+
+
+            _cho.GetAction<SendEventByName>("Nail R Sweep", 1).sendEvent = "COMB L2";
+            _cho.GetAction<SendEventByName>("Nail R Sweep", 1).delay = 1.2f;
+            _cho.GetAction<SendEventByName>("Nail R Sweep", 2).sendEvent = "COMB TOP";
+
+
+
         }
 
         private void ModifyNailWall()
@@ -464,9 +450,7 @@ namespace ManyRadiances
             _com.InsertCustomAction("Comb Top", () =>
             {
                 _com.FsmVariables.FindFsmGameObject("Attack Obj").Value.LocateMyFSM("Control").FsmVariables.GetFsmInt("Type").Value = UnityEngine.Random.Range(1, 6);
-                Log("OK");
             }, 3);
-            //_cho.GetAction<SendEventByName>("Nail Top Sweep", 3).delay = 1.25f;
             _cho.GetAction<SendEventByName>("Nail Top Sweep", 0).delay = 0f;
             _cho.GetAction<SendEventByName>("Nail Top Sweep", 1).delay = 0.5f;
             _cho.GetAction<Wait>("Nail Top Sweep", 4).time = 3.0f;
@@ -476,7 +460,6 @@ namespace ManyRadiances
             _com.InsertCustomAction("Comb L", () =>
             {
                 _com.FsmVariables.FindFsmGameObject("Attack Obj").Value.LocateMyFSM("Control").FsmVariables.GetFsmInt("Type").Value = UnityEngine.Random.Range(1, 6);
-                Log("OK");
             }, 3);
             _cho.GetAction<SendEventByName>("Nail L Sweep", 0).delay = 0f;
             _cho.GetAction<SendEventByName>("Nail L Sweep", 1).delay = 0.5f;
@@ -488,7 +471,6 @@ namespace ManyRadiances
             _com.InsertCustomAction("Comb R", () =>
             {
                 _com.FsmVariables.FindFsmGameObject("Attack Obj").Value.LocateMyFSM("Control").FsmVariables.GetFsmInt("Type").Value = UnityEngine.Random.Range(1, 6);
-                Log("OK");
             }, 3);
             _cho.GetAction<SendEventByName>("Nail R Sweep", 0).delay = 0f;
             _cho.GetAction<SendEventByName>("Nail R Sweep", 1).delay = 0.5f;
@@ -515,7 +497,7 @@ namespace ManyRadiances
             {
                 if (UnityEngine.Random.Range(0, 2) == 0)
                 {
-                    StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 0.4f, "FLY"));//"FAN ATTACK CW"));
+                    StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 0.4f, "FLY"));
                     StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 2.4f, "NAIL END"));
                 }
                 else
@@ -523,14 +505,13 @@ namespace ManyRadiances
                     StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 0.4f, "FAN ATTACK CW"));
                 }
             }, 1);
-            //_com.AddAction("CW Msg",new SendEventByName() { delay = 0.25f, eventTarget = sebn.eventTarget, sendEvent = new FsmString() { Value = "FAN ATTACK CW" }, everyFrame = false });
             _com.RemoveAction("CCW Spawn", 4);
             _com.InsertAction("CCW Spawn", new Wait { time = 0.07f, finishEvent = new FsmEvent("FINISHED") }, 4);
             _com.InsertCustomAction("CCW Msg", () =>
             {
                 if (UnityEngine.Random.Range(0, 2) == 0)
                 {
-                    StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 0.4f, "FLY"));//"FAN ATTACK CW"));
+                    StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 0.4f, "FLY"));
                     StartCoroutine(SendEventToNail(_com.FsmVariables.FindFsmGameObject("Attack Obj").Value, 2.4f, "NAIL END"));
                 }
                 else
@@ -544,29 +525,28 @@ namespace ManyRadiances
             _com.GetAction<Wait>("CW Restart", 1).time = 0f;
             _com.GetAction<Wait>("CCW Restart", 1).time = 0f;
 
-            //_com.AddAction("CW Msg", new SendEventByName() { delay = 0.25f, eventTarget = sebn.eventTarget, sendEvent = new FsmString() { Value = "FAN ATTACK CCW" }, everyFrame = false });
         }
 
         private void ModifySpike()
         {
             PlayMakerFSM _spikecon = GameObject.Find("Spike Control").LocateMyFSM("Control");
-            List<GameObject> spikes= new List<GameObject>();
+            List<GameObject> spikes = new List<GameObject>();
             spikes.Add(GameObject.Find("Radiant Spike"));
-            for(int i = 1; i <= 24; i++)
+            for (int i = 1; i <= 24; i++)
             {
-                string name= "Radiant Spike "+"("+i+")";
+                string name = "Radiant Spike " + "(" + i + ")";
                 spikes.Add(GameObject.Find(name));
             }
-            spikes.Sort((a, b) => { return a.transform.GetPositionX() < b.transform.GetPositionX()?1:-1; });
-            foreach(GameObject spike in spikes)
+            spikes.Sort((a, b) => { return a.transform.GetPositionX() < b.transform.GetPositionX() ? 1 : -1; });
+            foreach (GameObject spike in spikes)
             {
 
-                spike.LocateMyFSM("Control").GetAction<Wait>("Floor Antic",2).time = 1f;
+                spike.LocateMyFSM("Control").GetAction<Wait>("Floor Antic", 2).time = 1f;
                 spike.LocateMyFSM("Hero Saver").RemoveAction("Send", 0);
                 spike.LocateMyFSM("Hero Saver").InsertCustomAction("Send", () =>
                 {
                     int j = spikes.IndexOf(spike) + 1;
-                    int i= spikes.IndexOf(spike)-1;
+                    int i = spikes.IndexOf(spike) - 1;
                     while (j < spikes.Count)
                     {
                         string activename = spikes[j].LocateMyFSM("Control").ActiveStateName;
@@ -587,8 +567,6 @@ namespace ManyRadiances
                         }
                         i--;
                     }
-                    /*if (spikes.IndexOf(spike) > 0) { spikes[spikes.IndexOf(spike)-1].LocateMyFSM("Control").SendEvent("DOWN"); }
-                    if (spikes.IndexOf(spike) < spikes.Count-1) { spikes[spikes.IndexOf(spike) + 1].LocateMyFSM("Control").SendEvent("DOWN"); }*/
                     spike.LocateMyFSM("Control").SendEvent("DOWN");
                 }, 0);
             }
@@ -601,44 +579,7 @@ namespace ManyRadiances
                 }
                 _spikecon.InsertCustomAction("Wave L", () =>
                 {
-                    /*for(int i = 2; i <= 6; i++)
-                    {
-                        if (UnityEngine.Random.Range(0, 2) != 0)
-                        {
-                            _spikecon.GetAction<SendEventByName>("Wave L", i).sendEvent = "UP";
-                            //_spikecon.GetAction<SendEventByName>("Wave L", i).delay = 0f;
-                        }
-                        else
-                        {
-                            _spikecon.GetAction<SendEventByName>("Wave L", i).sendEvent = "DOWN";
-                        }
-                    }*/
-                    foreach(var spike in spikes)
-                    {
-                        if (UnityEngine.Random.Range(0, 3) > 0)
-                        {
-                            spike.LocateMyFSM("Control").SendEvent("UP");
-                        }
-                        else
-                        {
-                            //spike.LocateMyFSM("Control").SendEvent("DOWN");
-                        }
-                    }
-                }, 2);
-                _spikecon.InsertCustomAction("Wave R", () =>
-                {
-                    /*for (int i = 2; i <= 6; i++)
-                    {
-                        if (UnityEngine.Random.Range(0, 10) >2)
-                        {
-                            _spikecon.GetAction<SendEventByName>("Wave R", i).sendEvent = "UP";
-                            //_spikecon.GetAction<SendEventByName>("Wave L", i).delay = 0f;
-                        }
-                        else
-                        {
-                            _spikecon.GetAction<SendEventByName>("Wave R", i).sendEvent = "DOWN";
-                        }
-                    }*/
+
                     foreach (var spike in spikes)
                     {
                         if (UnityEngine.Random.Range(0, 3) > 0)
@@ -647,44 +588,52 @@ namespace ManyRadiances
                         }
                         else
                         {
-                           // spike.LocateMyFSM("Control").SendEvent("DOWN");
+                        }
+                    }
+                }, 2);
+                _spikecon.InsertCustomAction("Wave R", () =>
+                {
+
+                    foreach (var spike in spikes)
+                    {
+                        if (UnityEngine.Random.Range(0, 3) > 0)
+                        {
+                            spike.LocateMyFSM("Control").SendEvent("UP");
+                        }
+                        else
+                        {
                         }
                     }
                 }, 2);
 
             }
-            Log(GameObject.Find("Radiant Spike").LocateMyFSM("Hero Saver").ActiveStateName);
         }
 
         private void ModifyRadiance()
         {
             _hp.hp = initHp;
-            _phcon.FsmVariables.FindFsmInt("P2 Spike Waves").Value =spikeWaves;
+            _phcon.FsmVariables.FindFsmInt("P2 Spike Waves").Value = spikeWaves;
             _phcon.FsmVariables.FindFsmInt("P3 A1 Rage").Value = a1Rage;
             _phcon.FsmVariables.FindFsmInt("P4 Stun1").Value = stun;
             _phcon.FsmVariables.FindFsmInt("P5 Acend").Value = p5Acend;
             _con.GetAction<SetHP>("Scream", 7).hp = Scream;
 
-            //_com.GetAction<SetFsmInt>("Comb L 2", 1).setValue = 6;
-            //_com.GetAction<SetFsmInt>("Comb R 2", 1).setValue = 6;
+
         }
 
         private void ModifyPlatsPhase()
         {
 
             //常态
-            //_com.RemoveAction("EB End", 1);
-            //_com.RemoveAction("End", 1);
             _com.RemoveTransition("Aim Back", "FINISHED");
             _com.GetAction<Wait>("AB Start", 1).time = 0.02f;
 
             _con.InsertCustomAction("Tele Cast?", () =>
             {
-                Log("进入");
-                
+
                 if (_con.FsmVariables.FindFsmInt("Last Tele Pos").Value != 6)
                 {
-                    float num = knight.transform.position.y-1.5f - gameObject.transform.position.y;
+                    float num = knight.transform.position.y - 1.5f - gameObject.transform.position.y;
                     float num2 = knight.transform.position.x - gameObject.transform.position.x;
                     float num3;
                     for (num3 = Mathf.Atan2(num, num2) * (180f / (float)Math.PI); num3 < 0f; num3 += 360f)
@@ -692,11 +641,10 @@ namespace ManyRadiances
                     }
                     num3 += UnityEngine.Random.Range(-5f, 5f);
                     GameObject beam = Instantiate(oribeam);
-                    beam.transform.position=gameObject.transform.position;
-                    beam.transform.SetPositionY(gameObject.transform.position.y+1.5f);
+                    beam.transform.position = gameObject.transform.position;
+                    beam.transform.SetPositionY(gameObject.transform.position.y + 1.5f);
                     beam.transform.SetRotation2D(num3);
                     StartCoroutine(beamFire(beam, 1.0f, 0.5f, 0f));
-                    Log("!=6");
                 }
                 else
                 {
@@ -706,8 +654,6 @@ namespace ManyRadiances
                     beam.transform.SetRotation2D(180f);
                     StartCoroutine(beamFire(beam, 0f, 2f, 0f));
                     StartCoroutine(BBrorate(beam, 90f, 2f, true));
-                    Log(beam);
-                    Log("=6");
                 }
 
             }, 0);
@@ -728,23 +674,16 @@ namespace ManyRadiances
                 }
 
 
-                /*
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst1").Value, "ANTIC", 0.2f));
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst2").Value, "ANTIC", 0.2f));
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst3").Value, "ANTIC", 0.2f));
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst1").Value, "FIRE", 0.3f));
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst2").Value, "FIRE", 0.3f));
-                StartCoroutine(SendEventToBB(_com.GetVariable<FsmGameObject>("Eye Beam Burst3").Value, "FIRE", 0.3f));
-                */
+
             }, 0);
 
 
             //光球激光速度减慢
-            _cho.GetAction<SendRandomEventV3>("A2 Choice", 1).weights[2] = 0.75f;
-            _com.GetAction<Wait>("Orb Pause", 0).time = 0.5f;
+            _cho.GetAction<SendRandomEventV3>("A2 Choice", 1).weights[2] = 0.5f;
+            _com.GetAction<Wait>("Orb Pause", 0).time = 0.75f;
             _com.InsertCustomAction("Orb Antic", () =>
             {
-                foreach(var beam in a2beams)
+                foreach (var beam in a2beams)
                 {
                     Destroy(beam);
                 }
@@ -756,11 +695,9 @@ namespace ManyRadiances
             {
                 AudioSource aus;
                 aus = a2beams[0].GetAddComponent<AudioSource>();
-                aus.PlayOneShot(BeamAnticClip);
+                aus.PlayOneShot(BeamAnticClip, 0.5f * GameManager.instance.gameSettings.soundVolume / 10f);
                 foreach (var beam in a2beams)
                 {
-                    Log("ANTIC");
-                    Log(beam.LocateMyFSM("Control").ActiveStateName);
                     beam.LocateMyFSM("Control").SendEvent("ANTIC");
                 }
             }, 0);
@@ -768,11 +705,9 @@ namespace ManyRadiances
             {
                 AudioSource aus;
                 aus = a2beams[0].GetAddComponent<AudioSource>();
-                aus.PlayOneShot(BeamFireClip);
+                aus.PlayOneShot(BeamFireClip, 0.5f * GameManager.instance.gameSettings.soundVolume / 10f);
                 foreach (var beam in a2beams)
                 {
-                    Log("FIRE");
-                    Log(beam.LocateMyFSM("Control").ActiveStateName);
                     beam.LocateMyFSM("Control").SendEvent("FIRE");
                 }
                 StartCoroutine(BeamEndAndAntic());
@@ -780,69 +715,80 @@ namespace ManyRadiances
 
             _com.InsertCustomAction("Orb End", () =>
             {
-                foreach( var beam in a2beams)
+                foreach (var beam in a2beams)
                 {
                     beam.SetActive(false);
                 }
             }, 0);
 
-            //脸刺乱向
+            //横刺乱向
 
             _com.InsertCustomAction("Comb L 2", () =>
             {
                 int r = UnityEngine.Random.Range(6, 9);
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<SetPosition>("Top 2", 0).y = 58f;
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<SetFloatValue>("Top 2", 2).floatValue = 12f;
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<iTweenMoveBy>("Tween", 0).vector = new Vector3(0, 50, 0);
+
                 _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetVariable<FsmInt>("Type").Value = r;// > 2 ? r + 3 : r;
             }, 3);
 
             _com.InsertCustomAction("Comb R 2", () =>
             {
                 int r = UnityEngine.Random.Range(6, 9);
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<SetPosition>("Top 2", 0).y = 58f;
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<SetFloatValue>("Top 2", 2).floatValue = 12f;
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetAction<iTweenMoveBy>("Tween", 0).vector = new Vector3(0, 50, 0);
                 _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").GetVariable<FsmInt>("Type").Value = r; //> 2 ? r + 3 : r;
             }, 3);
-
 
         }
 
         private IEnumerator OrbCircle(GameObject gameObject, bool v)
         {
-            useorbs[0].transform.position = base.gameObject.transform.position+new Vector3(0,1.5f,0);
-            useorbs[0].LocateMyFSM("Orb Control").SetState("Init");
-            useorbs[0].SetActive(true);
+            float a;
+            Color color = GameObject.Find("Halo").GetComponent<SpriteRenderer>().color;
+            a = color.a;
+            color.a = 1f;
+            GameObject.Find("Halo").GetComponent<SpriteRenderer>().color = color;
             yield return new WaitForSeconds(0.5f);
-            int num = 12; 
+            int num = 12;
             float degree = 360f / num;
             float distance = v ? 3f : 12f;
             int turn = 0;
-                for(int i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
+            {
+                Vector3 pos;
+                for (int j = 1 + turn * num; j < num + turn * num; j++)
                 {
-                    Vector3 pos;
-                    for(int j = 1+turn*num; j<num + turn * num; j++)
-                    {
-                        pos = gameObject.transform.position + new Vector3(Mathf.Cos(j * degree) * distance, Mathf.Sin(j * degree) * distance, 0);
+                    pos = gameObject.transform.position + new Vector3(Mathf.Cos(j * degree) * distance, Mathf.Sin(j * degree) * distance, 0);
 
-                        useorbs[j].transform.position = pos;
+                    useorbs[j].transform.position = pos;
 
                     useorbs[j].LocateMyFSM("Orb Control").SetState("Init");
                     useorbs[j].SetActive(true);
-                        
-                        
-                    }
+
+
+                }
                 distance += 1f * (v ? 2f : -1);
                 yield return new WaitForSeconds(0.3f);
-                    for (int j = 1+turn * num; j < num +turn * num; j++)
-                    {
-                        useorbs[j].LocateMyFSM("Orb Control").SendEvent("DESTROY");
-                    }
-                turn = turn+1>3?0:turn+1;
+                for (int j = 1 + turn * num; j < num + turn * num; j++)
+                {
+                    useorbs[j].LocateMyFSM("Orb Control").SendEvent("DESTROY");
                 }
+                turn = turn + 1 > 4 ? 0 : turn + 1;
+            }
             useorbs[0].LocateMyFSM("Orb Control").SendEvent("DESTROY");
+            Color color1 = GameObject.Find("Halo").GetComponent<SpriteRenderer>().color;
+            color1.a = a;
+            GameObject.Find("Halo").GetComponent<SpriteRenderer>().color = color1;
             yield break;
         }
 
         private IEnumerator BeamEndAndAntic()
         {
             yield return new WaitForSeconds(0.05f);
-            foreach(var beam in a2beams)
+            foreach (var beam in a2beams)
             {
                 beam.LocateMyFSM("Control").SendEvent("END");
             }
@@ -855,27 +801,69 @@ namespace ManyRadiances
 
         private IEnumerator Shown()
         {
-            yield return new WaitForSeconds(2f);
-            ShowConvo("耀日东升西落");
-            yield return new WaitForSeconds(4.5f);
-            ShowConvo("明月阴晴圆缺");
-            yield return new WaitForSeconds(4.5f);
-            ShowConvo("落木枯朽而下");
-            yield return new WaitForSeconds(4.5f);
-            ShowConvo("时间一去无返");
-            yield return new WaitForSeconds(4.5f);
-            ShowConvo("万物皆有起伏");
+            while (knight.transform.position.y < 50f)
+                yield return null;
+            ShowConvo("黄昏会消去耀阳");
+            while (knight.transform.position.y < 75f)
+                yield return null;
+            ShowConvo("新月会取代满月");
+            while (knight.transform.position.y < 100f)
+                yield return null;
+            ShowConvo("疾风会卷去落木");
+            while (knight.transform.position.y < 125f)
+                yield return null;
+            ShowConvo("泪水会消散时间");
+            while (knight.transform.position.y < 140f)
+                yield return null;
+            ShowConvo("万物皆有其起落");
             yield break;
 
+
+
+        }
+
+        private IEnumerator Zoomout()
+        {
+            float vel = 0.4f;
+            GameObject camera = GameCameras.instance.gameObject.FindGameObjectInChildren("CameraParent").FindGameObjectInChildren("tk2dCamera");
+            yield return new WaitForSeconds(1.5f);
+            if (camera != null)
+            {
+                zoomscale = camera.GetComponent<tk2dCamera>().ZoomFactor;
+                zoom = true;
+
+                while (camera.GetComponent<tk2dCamera>().ZoomFactor > 0.8)
+                {
+                    camera.GetComponent<tk2dCamera>().ZoomFactor -= vel * Time.deltaTime;
+                    yield return null;
+                }
+            }
+            yield break;
+        }
+        private IEnumerator Zoomin()
+        {
+            float vel = 0.4f;
+            GameObject camera = GameCameras.instance.gameObject.FindGameObjectInChildren("CameraParent").FindGameObjectInChildren("tk2dCamera");
+            if (camera != null)
+            {
+
+
+                while (camera.GetComponent<tk2dCamera>().ZoomFactor < 0.9)
+                {
+                    camera.GetComponent<tk2dCamera>().ZoomFactor += vel * Time.deltaTime;
+                    yield return null;
+                }
+            }
+            yield break;
         }
         private void ModifyAcend()
         {
             gap = 0.5f;
-            height = 69f;
+            height = 70f;
             _com.InsertCustomAction("Comb Top 2", () =>
             {
-                GameObject nails=_com.FsmVariables.FindFsmGameObject("Attack Obj").Value;
-                if (height < 150f) { height += 4.5f; }
+                GameObject nails = _com.FsmVariables.FindFsmGameObject("Attack Obj").Value;
+                if (height < 160f) { height += 4.5f; }
                 else { gap = 1.2f; }
                 nails.LocateMyFSM("Control").GetAction<SetPosition>("Top 2", 0).y = height;
                 nails.LocateMyFSM("Control").GetAction<SetFloatValue>("Top 2", 2).floatValue = 8f;
@@ -886,10 +874,9 @@ namespace ManyRadiances
                     nails.LocateMyFSM("Control").FsmVariables.FindFsmGameObject("Nails").Value.FindAllChildren(nailist);
                     foreach (var nail in nailist)
                     {
-                        
+
                         if (nail.name.Contains("Radiant Nail"))
                         {
-                            Log(nail);
                             nail.transform.SetPositionY(nail.transform.GetPositionY() + UnityEngine.Random.Range(-3f, 3f));
                             nail.transform.SetPositionX(nail.transform.GetPositionX() + UnityEngine.Random.Range(-0.75f, 0.75f));
                         }
@@ -898,7 +885,6 @@ namespace ManyRadiances
                 }, 2);
             }, 3);
 
-
             _con.RemoveAction("Plat Setup", 4);
             _con.RemoveAction("Plat Setup", 2);
             _con.InsertCustomAction("Plat Setup", () => {
@@ -906,16 +892,16 @@ namespace ManyRadiances
                 GameObject.Find("Radiant Plat Small (10)").LocateMyFSM("radiant_plat").SendEvent("APPEAR");
                 PlayerData.instance.SetHazardRespawn(new Vector3(59f, 46f, 0), true);
 
-                Clock = Instantiate(_com.GetAction<SpawnObjectFromGlobalPool>("Spawn Fireball",1).gameObject.Value);
+                Clock = Instantiate(_com.GetAction<SpawnObjectFromGlobalPool>("Spawn Fireball", 1).gameObject.Value);
                 clock = Clock.GetComponent<AudioSource>();
                 clock.Stop();
-                Clock.transform.SetPosition2D(0f,0f);
+                Clock.transform.SetPosition2D(0f, 0f);
                 hourHand = Instantiate(oribeam);
                 clock = hourHand.GetComponent<AudioSource>();
-                if(clock!= null)
-                clock.Stop();
+                if (clock != null)
+                    clock.Stop();
                 hourHand.transform.SetRotation2D(0);
-                hourHand.transform.SetPosition2D(0f,0f);
+                hourHand.transform.SetPosition2D(0f, 0f);
                 minuteHand = Instantiate(oribeam);
                 clock = minuteHand.GetComponent<AudioSource>();
                 if (clock != null)
@@ -929,7 +915,7 @@ namespace ManyRadiances
                 clock = secondHand.GetAddComponent<AudioSource>();
                 secondHand.transform.SetRotation2D(0);
                 secondHand.transform.SetPosition2D(0f, 0f);
-                
+
 
                 Clock.transform.SetParent(timeClock.transform);
                 hourHand.transform.SetParent(timeClock.transform);
@@ -946,39 +932,45 @@ namespace ManyRadiances
                 StartCoroutine(beamFire(hourHand, 5f, 9999f, 0));
                 StartCoroutine(beamFire(minuteHand, 5f, 9999f, 0));
                 StartCoroutine(beamFire(secondHand, 5f, 9999f, 0));
+                StartCoroutine(Zoomout());
                 StartCoroutine("Shown");
                 
 
 
+
             }, 2);
             _con.GetAction<Wait>("Plat Setup", 5).time = 0.5f;
-            
             _con.GetAction<SendEventByName>("Ascend Cast", 1).sendEvent = "COMB TOP2";
 
 
-            _con.InsertCustomAction("Scream", () =>{
-                GameObject.Find("Abyss Pit").LocateMyFSM("Ascend").FsmVariables.FindFsmFloat("Hero Y").Value=knight.transform.position.y;
+            _con.InsertCustomAction("Scream", () => {
+                _com.GetVariable<FsmGameObject>("Attack Obj").Value.LocateMyFSM("Control").SetState("Reset");
+                GameObject.Find("Abyss Pit").LocateMyFSM("Ascend").FsmVariables.FindFsmFloat("Hero Y").Value = knight.transform.position.y;
                 GameObject.Find("Abyss Pit").LocateMyFSM("Ascend").SendEvent("ASCEND");
-                PlayerData.instance.SetHazardRespawn(new Vector3(58,153,0), true);
+                global::PlayerData.instance.SetHazardRespawn(new Vector3(58, 153, 0), true);
                 timeClock.SetActive(false);
                 final = true;
-            },8);
+            }, 8);
 
-            
-            
+
+
         }
 
         private void ModifyFinal()
         {
 
             _com.RemoveTransition("Set Final Orbs", "FINISHED");
-            int num=3;
+            int num = 3;
             float distance = 3f;
+            _con.InsertAction("Scream", new Wait() { time = 5f, realTime = false }, 8);
+
             _con.InsertCustomAction("Scream", () =>
             {
-                StopCoroutine("Shown");
-                ShowConvo("唯永恒不灭！");
-                for (int i = 0; i < num; i++)
+                    StartCoroutine(Zoomin());
+                    StopCoroutine("Shown");
+                    ShowConvo("唯！永！恒！不！灭！");
+                
+                for (int i = 1; i < num + 1; i++)
                 {
                     useorbs[i].LocateMyFSM("Orb Control").GetAction<ChaseObjectV2>("Chase Hero", 3).target = gameObject;
                     useorbs[i].LocateMyFSM("Orb Control").GetAction<ChaseObjectV2>("Chase Hero 2", 4).target = gameObject;
@@ -990,26 +982,58 @@ namespace ManyRadiances
                     useorbs[i].transform.position = gameObject.transform.position + distance * new Vector3(Mathf.Cos(i * (360f / num)), Mathf.Sin(i * (360f / num)), 0);
                     useorbs[i].LocateMyFSM("Orb Control").SetState("Init");
                 }
-                for (int i = 0; i < num; i++)
-                {
-                    useorbs[i].SetActive(true);
-                    useorbs[i].LocateMyFSM("Orb Control").SendEvent("FIRE");
-                    Log("FIRE");
-                }
+                StartCoroutine(finalshow());
             }, 2);
 
             _com.InsertCustomAction("Final Hit", () =>
             {
-                Log("FINALHIT");
-                for (int i = 0;i < num; i++)
+                for (int i = 1; i < num + 1; i++)
                 {
                     useorbs[i].LocateMyFSM("Orb Control").SendEvent("DESTROY");
                     useorbs[i].SetActive(false);
                 }
-            },0);
-            
-            }
+            }, 0);
 
+        }
+
+        IEnumerator finalshow()
+        {
+            float distance = 5f;
+            float delay = 1.5f;
+            float v = 80f;
+            float now = 0f;
+            int num = 1;
+            List<GameObject> orbs = new List<GameObject>();
+            yield return new WaitForSeconds(0.2f);
+            useorbs[1].transform.position = gameObject.transform.position + new Vector3(0, distance, 0);
+            useorbs[1].LocateMyFSM("Orb Control").GetAction<AudioPlaySimple>("Init", 0).volume = 0.5f;
+            useorbs[1].SetActive(true);
+            orbs.Add(useorbs[1]);
+            num = 2;
+            while (num < 5)
+            {
+                if (now > delay)
+                {
+                    now = 0f;
+                    if (num < 4)
+                    {
+                        useorbs[num].transform.position = gameObject.transform.position + new Vector3(0, distance, 0);
+                        useorbs[num].LocateMyFSM("Orb Control").GetAction<AudioPlaySimple>("Init", 0).volume = 0.5f;
+                        useorbs[num].SetActive(true);
+                        orbs.Add(useorbs[num]);
+                    }
+                    num++;
+                }
+                foreach (var orb in orbs)
+                {
+                    orb.transform.RotateAround(gameObject.transform.position, Vector3.back, v * Time.deltaTime);
+                }
+                now += Time.deltaTime;
+                yield return null;
+            }
+            foreach (var orb in orbs) { orb.LocateMyFSM("Orb Control").SendEvent("FIRE"); }
+            yield break;
+        }
 
 
         private void Update()
@@ -1017,7 +1041,7 @@ namespace ManyRadiances
             if (!foundbeam)
             {
                 string actstr = _com.ActiveStateName;
-                if (actstr=="Idle")
+                if (actstr == "Idle")
                 {
                     oribeam = _com.FsmVariables.FindFsmGameObject("Ascend Beam").Value;
 
@@ -1026,8 +1050,8 @@ namespace ManyRadiances
             }
 
             //Log(_com.GetVariable<FsmVector3>("Hero Pos"));
-            
-            if(_con.ActiveStateName=="Ascend Cast")
+
+            if (_con.ActiveStateName == "Ascend Cast")
             {
                 if (gapnow >= gap)
                 {
@@ -1036,23 +1060,10 @@ namespace ManyRadiances
                 }
                 gapnow += Time.deltaTime;
 
-                if (bbgapnow >= bbgap) {
+                if (bbgapnow >= bbgap)
+                {
                     second -= 6f;
-                    clock.PlayOneShot(tip,2f);
-                    //ShowConvo("而我将永恒");
-
-                    //gameObject.GetComponent<EnemyDreamnailReaction>().RecieveDreamImpact();
-                    /*Log("SECOND");
-                    if (second - 6 <= 90f && second >= 90f)
-                    {
-                        minute -= 6f;
-                        Log("MINUTE");
-                        if(minute - 6 <= 90f && minute >= 90f)
-                        {
-                            hour -= 6f;
-                            Log("HOUR");
-                        }
-                    }*/
+                    clock.PlayOneShot(tip, 1.5f * GameManager.instance.gameSettings.soundVolume / 10f);
 
                     second %= 360f;
                     minute %= 360f;
@@ -1060,15 +1071,13 @@ namespace ManyRadiances
                     secondHand.transform.SetRotation2D(second);
                     minuteHand.transform.SetRotation2D(minute);
                     hourHand.transform.SetRotation2D(hour);
-                    //StartCoroutine(BBrorate(secondHand, 20f, 0.05f,true));
                     bbgapnow = 0f;
-                        }
-                bbgapnow+= Time.deltaTime;
+                }
+                bbgapnow += Time.deltaTime;
 
             }
-            //Log(GameObject.Find("Radiant Spike").LocateMyFSM("Hero Saver").ActiveStateName);
 
-            if (gameObject.transform.position.y > 150f && _hp.hp <= 1500&&!finalSet1&&final)
+            if (gameObject.transform.position.y > 150f && _hp.hp <= 1500 && !finalSet1 && final)
             {
                 finalSet1 = true;
                 GameObject.Find("Radiant Plat Small (10)").LocateMyFSM("radiant_plat").ChangeTransition("Idle", "SLOW VANISH", "Vanish Antic");
@@ -1080,31 +1089,29 @@ namespace ManyRadiances
                 GameObject.Find("Radiant Plat Small (11)").LocateMyFSM("radiant_plat").ChangeTransition("Appear 2", "SLOW VANISH", "Vanish Antic");
                 if (UnityEngine.Random.Range(0, 2) == 0)
                 {
-                    Log("10");
                     GameObject.Find("Radiant Plat Small (10)").LocateMyFSM("radiant_plat").SendEvent("SLOW VANISH");
-                    finalSet2= true;
+                    finalSet2 = true;
                     PlayerData.instance.SetHazardRespawn(new Vector3(58, 153, 0), true);
                 }
                 else
                 {
-                    Log("11");
                     GameObject.Find("Radiant Plat Small (11)").LocateMyFSM("radiant_plat").SendEvent("SLOW VANISH");
-                    finalSet2= false;
+                    finalSet2 = false;
                     PlayerData.instance.SetHazardRespawn(new Vector3(68, 153, 0), false);
                 }
             }
-            if(finalSet1)
+            if (finalSet1)
             {
-                if(finalgapnow>= finalgap)
+                if (finalgapnow >= finalgap)
                 {
                     finalgapnow = 0f;
-                    if(!finalSet2)
+                    if (!finalSet2)
                     {
-                        finalSet2= true;
+                        finalSet2 = true;
                         GameObject.Find("Radiant Plat Small (10)").LocateMyFSM("radiant_plat").SendEvent("SLOW VANISH");
                         GameObject.Find("Radiant Plat Small (11)").LocateMyFSM("radiant_plat").SendEvent("APPEAR");
                         PlayerData.instance.SetHazardRespawn(new Vector3(58, 153, 0), true);
-                        
+
 
                     }
                     else
@@ -1115,10 +1122,7 @@ namespace ManyRadiances
                         PlayerData.instance.SetHazardRespawn(new Vector3(68, 153, 0), false);
                     }
                 }
-                Log(GameObject.Find("Radiant Plat Small (10)").LocateMyFSM("radiant_plat").ActiveStateName);
-                Log(GameObject.Find("Radiant Plat Small (11)").LocateMyFSM("radiant_plat").ActiveStateName);
                 finalgapnow += Time.deltaTime;
-                Log(finalgapnow);
             }
 
 
@@ -1126,16 +1130,16 @@ namespace ManyRadiances
 
         private void OnDestroy()
         {
-            foundbeam=false;
+            foundbeam = false;
             PlayMakerFSM playMakerFSM = PlayMakerFSM.FindFsmOnGameObject(HutongGames.PlayMaker.FsmVariables.GlobalVariables.GetFsmGameObject("Enemy Dream Msg").Value, "Display");
             if (playMakerFSM.GetState("Set Convo").Actions.Length == 6)
             {
                 playMakerFSM.RemoveAction("Set Convo", 4);
             }
-            foreach(var orb in orbList) { if(orb!=null) { Destroy(orb); } }
-            foreach(var beam in beams) { if(beam!=null) { Destroy(beam); } }
-            foreach(var orb in useorbs) { if(orb!=null) { Destroy(orb);} }
-
+            foreach (var orb in orbList) { if (orb != null) { Destroy(orb); } }
+            foreach (var orb in useorbs) { if (orb != null) { Destroy(orb); } }
+            foreach (var beam in a2beams) { if (beam != null) { Destroy(beam); } }
+            if (zoom) { GameCameras.instance.gameObject.FindGameObjectInChildren("CameraParent").FindGameObjectInChildren("tk2dCamera").GetComponent<tk2dCamera>().ZoomFactor = zoomscale; }
         }
 
         public static AudioClip LoadAudioClip(string path)
@@ -1150,29 +1154,27 @@ namespace ManyRadiances
             return clip;
         }
 
-        private void ShowConvo(string msg )
+        private void ShowConvo(string msg)
         {
             PlayMakerFSM playMakerFSM = PlayMakerFSM.FindFsmOnGameObject(HutongGames.PlayMaker.FsmVariables.GlobalVariables.GetFsmGameObject("Enemy Dream Msg").Value, "Display");
-            if(playMakerFSM.GetState("Set Convo").Actions.Length==5 ){
+            if (playMakerFSM.GetState("Set Convo").Actions.Length == 5)
+            {
                 playMakerFSM.InsertCustomAction("Set Convo", () =>
                 {
-                    Log("TEXT");
                     playMakerFSM.FsmVariables.GetFsmString("Convo Text").Value = convoTitle;
                 }, 4);
             }
-            Log(playMakerFSM.ActiveStateName);
             playMakerFSM.FsmVariables.GetFsmString("Convo Title").Value = "Radiance";
             playMakerFSM.FsmVariables.GetFsmInt("Convo Amount").Value = 1;
             convoTitle = msg;
             playMakerFSM.SendEvent("DISPLAY ENEMY DREAM");
-            Log(playMakerFSM.ActiveStateName);
         }
 
         private void Log(object obj)
         {
             if (obj == null)
             {
-                Modding.Logger.Log("[immortallight]:"+null);
+                Modding.Logger.Log("[immortallight]:" + null);
             }
             else Modding.Logger.Log("[immortallight]:" + obj);
         }

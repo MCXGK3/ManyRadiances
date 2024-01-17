@@ -39,7 +39,7 @@ namespace ManyRadiances
             "",
             "",
             "ForgottenLight",
-            "永燃之光"};
+            "永远不变，也永远变化；永远熄灭，也永远在燃烧"};
         public string[] grs = {"Ok.",
             "Ok.",
             "",
@@ -50,7 +50,7 @@ namespace ManyRadiances
             "",
             "",
             "",
-            "不会......熄灭......"};
+            "不会······消失·····"};
 
 
         public ManyRadiances() : base("ManyRadiances")
@@ -60,7 +60,7 @@ namespace ManyRadiances
 
         public override string GetVersion()
         {
-            return "m.x.0.6";
+            return "0.0.1.0";
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -80,7 +80,7 @@ namespace ManyRadiances
                 switch (key)
                 {
                     case "ABSOLUTE_RADIANCE_SUPER": if (Pri(s_) == -1) return orig; return ars[Pri(s_)];
-                    case "ABSOLUTE_RADIANCE_MAIN": if (Pri(s_) == -1) return orig; if (Pri(s_) == 2) return s_.main; else return orig;
+                    case "ABSOLUTE_RADIANCE_MAIN": if (Pri(s_) == -1) return orig; if (Pri(s_) == 2) return s_.main; else if(Pri(s_)==10) return OtherLanguage("永恒之光", "ImmortalLight");else return orig;
                     case "GG_S_RADIANCE": if (Pri(s_) == -1) return orig; return gg[Pri(s_)];
                     case "GODSEEKER_RADIANCE_STATUE": if (Pri(s_) == -1) return orig; return grs[Pri(s_)];
                     default: return orig;
@@ -107,7 +107,7 @@ namespace ManyRadiances
                         if (s_.IronHead) { self.gameObject.AddComponent<ironhead>(); }
                         if (s_.forgottenlight) { self.gameObject.AddComponent<forgottenlight>(); }
                         if (s_.immortalLight) { self.gameObject.AddComponent<immortallight>(); }
-                        if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
+                        //if (s_.test) { self.gameObject.AddComponent<radiancetest>(); }
                     }
                 }
             }
@@ -286,7 +286,7 @@ namespace ManyRadiances
                     Loader = () => s_.immortalLight ? 0 : 1,
                     Saver = i => s_.immortalLight = i == 0
                 });
-            menu.Add(
+            /*menu.Add(
                 new()
                 {
                     Name = "test",
@@ -298,7 +298,7 @@ namespace ManyRadiances
                  },
                     Loader = () => s_.test ? 0 : 1,
                     Saver = i => s_.test = i == 0
-                });
+                });*/
            
 
 
@@ -318,6 +318,15 @@ namespace ManyRadiances
             if(s.forgottenlight)return 9;
             if(s.immortalLight) return 10;
             else return -1;
+        }
+
+        private string OtherLanguage(string chinese, string english)
+        {
+            if (Language.Language.CurrentLanguage() == Language.LanguageCode.ZH)
+            {
+                return chinese;
+            }
+            else return english;
         }
 
         public void Unload()
